@@ -87,37 +87,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENGN-01 | — | Pending |
-| ENGN-02 | — | Pending |
-| ENGN-03 | — | Pending |
-| ENGN-04 | — | Pending |
-| ENGN-05 | — | Pending |
-| ENGN-06 | — | Pending |
-| VIZL-01 | — | Pending |
-| VIZL-02 | — | Pending |
-| VIZL-03 | — | Pending |
-| VIZL-04 | — | Pending |
-| VIZL-05 | — | Pending |
-| VIZL-06 | — | Pending |
-| NAVG-01 | — | Pending |
-| NAVG-02 | — | Pending |
-| NAVG-03 | — | Pending |
-| DELT-01 | — | Pending |
-| DELT-02 | — | Pending |
-| DELT-03 | — | Pending |
-| DELT-04 | — | Pending |
-| DELT-05 | — | Pending |
-| GAME-01 | — | Pending |
-| GAME-02 | — | Pending |
-| GAME-03 | — | Pending |
-| GAME-04 | — | Pending |
-| GAME-05 | — | Pending |
+| ENGN-01 | Phase 1 | Pending |
+| ENGN-02 | Phase 3 | Pending |
+| ENGN-03 | Phase 3 | Pending |
+| ENGN-04 | Phase 3 | Pending |
+| ENGN-05 | Phase 2 | Pending |
+| ENGN-06 | Phase 2 | Pending |
+| VIZL-01 | Phase 2 | Pending |
+| VIZL-02 | Phase 2 | Pending |
+| VIZL-03 | Phase 2 | Pending |
+| VIZL-04 | Phase 2 | Pending |
+| VIZL-05 | Phase 2 | Pending |
+| VIZL-06 | Phase 2 | Pending |
+| NAVG-01 | Phase 3 | Pending |
+| NAVG-02 | Phase 3 | Pending |
+| NAVG-03 | Phase 3 | Pending |
+| DELT-01 | Phase 3 | Pending |
+| DELT-02 | Phase 1 | Pending |
+| DELT-03 | Phase 3 | Pending |
+| DELT-04 | Phase 1 | Pending |
+| DELT-05 | Phase 3 | Pending |
+| GAME-01 | Phase 4 | Pending |
+| GAME-02 | Phase 4 | Pending |
+| GAME-03 | Phase 4 | Pending |
+| GAME-04 | Phase 4 | Pending |
+| GAME-05 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-16*
-*Last updated: 2026-02-16 after initial definition*
+*Last updated: 2026-02-16 after roadmap creation*
