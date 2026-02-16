@@ -103,15 +103,20 @@ function App() {
   async function scanDirectory(path: string) {
     setState('scanning');
     setScanProgress(null);
+    setError(null);
 
     try {
       const result = await commands.scanDirectory(path);
       setEntries(result);
       setState('ready');
     } catch (err) {
-      console.error('Failed to scan directory:', err);
-      setError(err instanceof Error ? err.message : String(err));
-      setState('picking');
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error('Failed to scan directory:', errorMsg);
+      setError(`Scan failed: ${errorMsg}`);
+      // Stay on scanning screen briefly so user sees the error
+      setTimeout(() => {
+        setState('picking');
+      }, 3000);
     }
   }
 
@@ -127,6 +132,20 @@ function App() {
   function changeDirectory() {
     setLastDirectory(null);
     pickDirectory();
+  }
+
+  async function navigateToDirectory(dirPath: string) {
+    setCurrentDirectory(dirPath);
+    await commands.saveLastDirectory(dirPath);
+    await scanDirectory(dirPath);
+  }
+
+  async function navigateUp() {
+    if (!currentDirectory) return;
+    const parent = currentDirectory.replace(/\/[^/]+\/?$/, '') || '/';
+    if (parent !== currentDirectory) {
+      await navigateToDirectory(parent);
+    }
   }
 
   async function handleDeleteFile(filePath: string) {
@@ -202,6 +221,7 @@ function App() {
       <div className="container">
         <div className="loading">
           <h2>Scanning directory...</h2>
+          {error && <div className="error-message">{error}</div>}
           {scanProgress && (
             <div className="scan-progress">
               <p>Files scanned: {scanProgress.files_scanned}</p>
@@ -242,7 +262,12 @@ function App() {
       <HUD deletedCount={deletedCount} deletedBytes={deletedBytes} />
 
       <div className="header">
-        <h2>{currentDirectory}</h2>
+        <div className="header-left">
+          <button onClick={navigateUp} className="btn-back" title="Go up one directory">
+            ◂
+          </button>
+          <h2>{currentDirectory}</h2>
+        </div>
         <button onClick={changeDirectory} className="btn-secondary">
           Change Directory
         </button>
@@ -250,7 +275,12 @@ function App() {
 
       <div className="file-list">
         {entries.map((entry) => (
-          <div key={entry.path} className={`file-entry ${entry.is_dir ? 'directory' : 'file'}`}>
+          <div
+            key={entry.path}
+            className={`file-entry ${entry.is_dir ? 'directory' : 'file'}`}
+            onClick={entry.is_dir ? () => navigateToDirectory(entry.path) : undefined}
+            style={entry.is_dir ? { cursor: 'pointer' } : undefined}
+          >
             <span className="icon">{entry.is_dir ? '📁' : '📄'}</span>
             <span className="name">{entry.name}</span>
             <span className="size">{formatBytes(entry.size)}</span>
