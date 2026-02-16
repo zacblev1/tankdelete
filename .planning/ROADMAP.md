@@ -47,10 +47,11 @@ Plans:
   6. User can hover over a block and see tooltip with filename, size, and last modified date
   7. Camera follows a fixed position in third-person view (no movement yet)
   8. Tron aesthetic visible: neon grid floor, glowing wireframe edges, bloom post-processing
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 02-01-PLAN.md — Install 3D deps, scene infrastructure (Canvas, Grid, Bloom), utility modules (scale, colors, geometries, layout)
+- [ ] 02-02-PLAN.md — Instanced file blocks, folder portals, hover tooltips, App.tsx integration, visual verification
 
 ### Phase 3: Core Gameplay
 **Goal**: Users can drive the tank, shoot files to mark them, and execute two-shot deletions
