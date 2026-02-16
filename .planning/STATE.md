@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Phase: 2 of 4 (3D Visualization)
-Plan: 2 of 2 in current phase
-Status: Plan 02-01 complete
-Last activity: 2026-02-16 — Completed plan 02-01 (3D Scene Foundation)
+Plan: 2 of 2 in current phase (PHASE COMPLETE)
+Status: Phase 02 complete - all plans executed
+Last activity: 2026-02-16 — Completed plan 02-02 (3D Scene with File Blocks and Portals)
 
-Progress: [███░░░░░░░] 37%
+Progress: [████░░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 6 min
+- Total plans completed: 4
+- Average duration: 5 min
 - Total execution time: 0.3 hours
 
 **By Phase:**
@@ -28,11 +28,11 @@ Progress: [███░░░░░░░] 37%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 2 | 14 min | 7 min |
-| 02 | 1 | 4 min | 4 min |
+| 02 | 2 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min avg
-- Trend: Consistent execution speed
+- Last 5 plans: 5 min avg
+- Trend: Accelerating - Phase 2 plans executed very efficiently
 
 *Updated after each plan completion*
 
@@ -62,6 +62,15 @@ Recent decisions affecting current work:
 - Grid layout with folders in front rows, files sorted by category then size descending
 - Bloom intensity 2.0 for strong glow halos on neon elements
 
+**Plan 02-02 Decisions:**
+- Instanced rendering with merged wireframe geometries for optimal performance (1 draw call per category instead of 500+)
+- Folder portals as glowing archway structures with size scaling by folder contents
+- Distinct green back portal for parent directory navigation
+- Floating Text labels above each block with color-matched glow
+- Category-based uniform bob animation (entire category group bobs together) to avoid per-frame geometry rebuilding
+- 80 particle count for atmospheric effect (conservative for performance)
+- Hover tooltip using drei Html component with Tron-styled dark background and cyan border
+
 ### Pending Todos
 
 None yet.
@@ -73,5 +82,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 02-01-PLAN.md (3D Scene Foundation)
+Stopped at: Completed 02-02-PLAN.md (3D Scene with File Blocks and Portals) - Phase 2 complete
 Resume file: None
