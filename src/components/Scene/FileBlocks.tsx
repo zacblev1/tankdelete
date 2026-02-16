@@ -13,14 +13,21 @@ interface InstancedCategoryBlocksProps {
   category: FileCategory;
   onHover: (block: BlockData | null) => void;
   meshRef?: React.RefObject<THREE.InstancedMesh | null>;
+  markedFiles: Set<string>;
+  deletingFiles: Set<string>;
+  onDeletionComplete?: (filePath: string) => void;
 }
 
-function InstancedCategoryBlocks({ blocks, category, onHover, meshRef: externalMeshRef }: InstancedCategoryBlocksProps) {
+function InstancedCategoryBlocks({ blocks, category, onHover, meshRef: externalMeshRef, markedFiles, deletingFiles, onDeletionComplete }: InstancedCategoryBlocksProps) {
   const internalMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const meshRef = externalMeshRef || internalMeshRef;
   const groupRef = useRef<THREE.Group>(null);
   const shapeConfig = CATEGORY_SHAPES[category];
   const categoryColor = blocks[0]?.color || '#ffffff';
+
+  // Track deletion animation progress for each deleting file
+  const deletionProgressRef = useRef<Map<string, number>>(new Map());
+  const DEREZ_DURATION = 0.8; // seconds
 
   // Create base geometry based on shape config
   const geometry = useMemo(() => {
@@ -77,27 +84,64 @@ function InstancedCategoryBlocks({ blocks, category, onHover, meshRef: externalM
     meshRef.current.instanceMatrix.needsUpdate = true;
   }, [blocks, tempMatrix, tempPosition, tempQuaternion, tempScale]);
 
-  // Animate: gentle bob and pulsing glow
-  useFrame(({ clock }) => {
+  // Animate: gentle bob, pulsing glow, mark visuals, de-rez animation
+  useFrame(({ clock }, delta) => {
     if (!meshRef.current || !groupRef.current) return;
 
     const time = clock.getElapsedTime();
 
-    // Update instance matrices with bob animation
+    // Update deletion progress for deleting files
+    for (const block of blocks) {
+      if (deletingFiles.has(block.path)) {
+        const currentProgress = deletionProgressRef.current.get(block.path) || 0;
+        const newProgress = currentProgress + delta / DEREZ_DURATION;
+
+        if (newProgress >= 1.0) {
+          // Animation complete
+          deletionProgressRef.current.delete(block.path);
+          if (onDeletionComplete) {
+            onDeletionComplete(block.path);
+          }
+        } else {
+          deletionProgressRef.current.set(block.path, newProgress);
+        }
+      }
+    }
+
+    // Update instance matrices with bob animation, mark visuals, and de-rez
     for (let i = 0; i < blocks.length; i++) {
       const block = blocks[i];
-      const bobOffset = Math.sin(time * 1.5 + block.position[0] * 0.5) * 0.08;
-      tempPosition.set(block.position[0], block.position[1] + bobOffset, block.position[2]);
-      tempScale.set(block.scale, block.scale, block.scale);
+      const isDeleting = deletingFiles.has(block.path);
+      const deletionProgress = deletionProgressRef.current.get(block.path) || 0;
+
+      // Bob animation (unless deleting)
+      const bobOffset = isDeleting ? 0 : Math.sin(time * 1.5 + block.position[0] * 0.5) * 0.08;
+
+      // De-rez animation: shrink and sink
+      let scale = block.scale;
+      let yOffset = bobOffset;
+      if (isDeleting) {
+        scale = block.scale * (1 - deletionProgress);
+        yOffset = -deletionProgress * 2; // Sink into ground
+      }
+
+      tempPosition.set(block.position[0], block.position[1] + yOffset, block.position[2]);
+      tempScale.set(scale, scale, scale);
       tempMatrix.compose(tempPosition, tempQuaternion, tempScale);
       meshRef.current.setMatrixAt(i, tempMatrix);
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
 
-    // Pulsing glow on material
+    // Pulsing glow on material (stronger pulse for marked files)
     const material = meshRef.current.material as THREE.MeshStandardMaterial;
     if (material) {
-      material.emissiveIntensity = 1.0 + Math.sin(time * 2) * 0.3;
+      // Check if any blocks in this category are marked
+      const hasMarked = blocks.some(b => markedFiles.has(b.path));
+      if (hasMarked) {
+        material.emissiveIntensity = 1.5 + Math.sin(time * 4) * 0.8; // Stronger, faster pulse
+      } else {
+        material.emissiveIntensity = 1.0 + Math.sin(time * 2) * 0.3;
+      }
     }
 
     // Bob the wireframe group in sync
@@ -147,6 +191,25 @@ function InstancedCategoryBlocks({ blocks, category, onHover, meshRef: externalM
         </group>
       )}
 
+      {/* Marked file overlays - pulsing red-orange glow */}
+      {blocks.filter(block => markedFiles.has(block.path)).map((block) => (
+        <mesh key={`marked-${block.path}`} position={block.position}>
+          {shapeConfig.type === 'box' ? (
+            <boxGeometry args={[block.scale * 1.1, block.scale * 1.1, block.scale * 1.1]} />
+          ) : (
+            <octahedronGeometry args={[block.scale * 0.6, 1]} />
+          )}
+          <meshStandardMaterial
+            color="#ff4400"
+            emissive="#ff4400"
+            emissiveIntensity={2.0}
+            transparent
+            opacity={0.3}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+
       {/* Floating filename labels */}
       {blocks.map((block) => (
         <Text
@@ -170,9 +233,12 @@ interface FileBlocksProps {
   blocks: Map<FileCategory, BlockData[]>;
   onHover: (block: BlockData | null) => void;
   onMeshRefsReady?: (refs: React.RefObject<THREE.InstancedMesh | null>[]) => void;
+  markedFiles?: Set<string>;
+  deletingFiles?: Set<string>;
+  onDeletionComplete?: (filePath: string) => void;
 }
 
-export function FileBlocks({ blocks, onHover, onMeshRefsReady }: FileBlocksProps) {
+export function FileBlocks({ blocks, onHover, onMeshRefsReady, markedFiles = new Set(), deletingFiles = new Set(), onDeletionComplete }: FileBlocksProps) {
   const [hoveredBlock, setHoveredBlock] = useState<BlockData | null>(null);
 
   // Collect mesh refs for hit detection
@@ -208,6 +274,9 @@ export function FileBlocks({ blocks, onHover, onMeshRefsReady }: FileBlocksProps
             category={category}
             onHover={handleHover}
             meshRef={categoryMeshRef}
+            markedFiles={markedFiles}
+            deletingFiles={deletingFiles}
+            onDeletionComplete={onDeletionComplete}
           />
         );
       })}

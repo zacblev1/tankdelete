@@ -21,6 +21,7 @@ import { CameraRig } from './components/Scene/CameraRig';
 import { Crosshair } from './components/Scene/Crosshair';
 import { useFileBlocks } from './hooks/useFileBlocks';
 import { useProjectilePool } from './hooks/useProjectilePool';
+import { useMarkedFiles } from './hooks/useMarkedFiles';
 import { ProjectileManager } from './components/Scene/ProjectileManager';
 import { layoutFilesInGrid } from './lib/layout';
 import { folderToScale } from './lib/scale';
@@ -33,6 +34,7 @@ const CONTROLS_MAP = [
   { name: 'backward', keys: ['KeyS', 'ArrowDown'] },
   { name: 'left', keys: ['KeyA', 'ArrowLeft'] },
   { name: 'right', keys: ['KeyD', 'ArrowRight'] },
+  { name: 'batchDelete', keys: ['Delete', 'KeyX'] },
 ];
 
 function App() {
@@ -54,6 +56,18 @@ function App() {
 
   // Projectile pool
   const { spawn, despawn, pool } = useProjectilePool();
+
+  // Marked files hook
+  const {
+    markedFiles,
+    deletingFiles,
+    markFile,
+    isMarked,
+    startDeletion,
+    finishDeletion,
+    deleteAllMarked,
+    markedCount,
+  } = useMarkedFiles();
 
   // File block mesh refs for hit detection (populated by FileBlocks component)
   const fileBlockRefsRef = useRef<React.RefObject<THREE.InstancedMesh | null>[]>([]);
@@ -92,7 +106,7 @@ function App() {
     };
   }, []);
 
-  // Keyboard listener for Ctrl+Z (Cmd+Z on macOS)
+  // Keyboard listener for Ctrl+Z (Cmd+Z on macOS) and batch delete
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Check for Ctrl+Z or Cmd+Z
@@ -100,11 +114,17 @@ function App() {
         e.preventDefault(); // Prevent browser default undo
         handleUndoLastTrash();
       }
+
+      // Check for Delete or X key for batch delete
+      if ((e.key === 'Delete' || e.key === 'x' || e.key === 'X') && markedCount > 0) {
+        e.preventDefault();
+        handleBatchDelete();
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentDirectory]); // Re-attach when currentDirectory changes
+  }, [currentDirectory, markedCount]); // Re-attach when currentDirectory or markedCount changes
 
   async function pickDirectory() {
     setState('picking');
@@ -240,14 +260,65 @@ function App() {
     spawn(position, direction);
   }
 
-  // Projectile hit handler (Task 1: just log for now)
-  function handleProjectileHit(filePath: string) {
-    console.log('Hit file:', filePath);
+  // Projectile hit handler with two-shot deletion logic
+  async function handleProjectileHit(filePath: string) {
+    if (isMarked(filePath)) {
+      // Second hit: delete the file
+      try {
+        const action = await commands.moveToTrash(filePath);
+
+        // Show success toast
+        toast.success(
+          `Deleted ${action.file_name} (${formatBytes(action.original_size)})`,
+          { duration: 3000 }
+        );
+
+        // Update session stats
+        const [count, bytes] = await commands.getSessionStats();
+        setDeletedCount(count);
+        setDeletedBytes(bytes);
+
+        // Start de-rez animation
+        startDeletion(filePath);
+
+        // Remove from entries after animation completes (handled by FileBlocks onDeletionComplete)
+      } catch (err) {
+        toast.error(`Failed to delete file: ${err}`);
+      }
+    } else {
+      // First hit: mark the file
+      markFile(filePath);
+    }
   }
 
   // Callback to receive mesh refs from FileBlocks
   function handleMeshRefsReady(refs: React.RefObject<THREE.InstancedMesh | null>[]) {
     fileBlockRefsRef.current = refs;
+  }
+
+  // Batch delete all marked files
+  async function handleBatchDelete() {
+    if (markedCount === 0) return;
+
+    try {
+      await deleteAllMarked();
+
+      // Update session stats after batch delete
+      const [count, bytes] = await commands.getSessionStats();
+      setDeletedCount(count);
+      setDeletedBytes(bytes);
+
+      toast.success(`Deleted ${markedCount} marked files`, { duration: 3000 });
+    } catch (err) {
+      toast.error(`Failed to batch delete: ${err}`);
+    }
+  }
+
+  // Called when a file's de-rez animation completes
+  function handleDeletionComplete(filePath: string) {
+    finishDeletion(filePath);
+    // Remove file from entries
+    setEntries(prev => prev.filter(e => e.path !== filePath));
   }
 
   if (state === 'checking') {
@@ -413,7 +484,14 @@ function App() {
             allBlocks={allBlocks}
           />
 
-          <FileBlocks blocks={blocksByCategory} onHover={() => {}} onMeshRefsReady={handleMeshRefsReady} />
+          <FileBlocks
+            blocks={blocksByCategory}
+            onHover={() => {}}
+            onMeshRefsReady={handleMeshRefsReady}
+            markedFiles={markedFiles}
+            deletingFiles={deletingFiles}
+            onDeletionComplete={handleDeletionComplete}
+          />
 
           {folders.map((folder) => {
             const position = folderPositions.get(folder.path);
