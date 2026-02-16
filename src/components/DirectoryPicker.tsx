@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface DirectoryPickerProps {
   onPick: () => void;
   lastDirectory?: string | null;

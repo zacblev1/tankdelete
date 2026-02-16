@@ -182,7 +182,7 @@ button:active {
 
 .file-entry {
   display: grid;
-  grid-template-columns: 40px 1fr auto auto;
+  grid-template-columns: 40px 1fr auto auto auto;
   gap: 1rem;
   padding: 0.75rem;
   background-color: rgba(255, 255, 255, 0.05);
@@ -252,4 +252,35 @@ button:active {
 
 .file-list::-webkit-scrollbar-thumb:hover {
   background: #00cccc;
+}
+
+/* Delete button */
+.delete-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #666;
+  background-color: rgba(102, 102, 102, 0.1);
+  color: #666;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: none;
+  letter-spacing: 0;
+  min-width: 30px;
+  opacity: 0.5;
+}
+
+.file-entry:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  border-color: #ff3366;
+  color: #ff3366;
+  background-color: rgba(255, 51, 102, 0.1);
+  box-shadow: 0 0 8px rgba(255, 51, 102, 0.5);
+}
+
+.delete-btn:active {
+  background-color: rgba(255, 51, 102, 0.2);
 }
