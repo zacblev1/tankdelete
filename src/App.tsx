@@ -20,6 +20,8 @@ import { Tank } from './components/Scene/Tank';
 import { CameraRig } from './components/Scene/CameraRig';
 import { Crosshair } from './components/Scene/Crosshair';
 import { useFileBlocks } from './hooks/useFileBlocks';
+import { useProjectilePool } from './hooks/useProjectilePool';
+import { ProjectileManager } from './components/Scene/ProjectileManager';
 import { layoutFilesInGrid } from './lib/layout';
 import { folderToScale } from './lib/scale';
 
@@ -49,6 +51,12 @@ function App() {
 
   // Tank state for minimap (updated by Tank component each frame)
   const tankStateRef = useRef({ position: [0, 0, 0] as [number, number, number], rotation: 0 });
+
+  // Projectile pool
+  const { spawn, despawn, pool } = useProjectilePool();
+
+  // File block mesh refs for hit detection (populated by FileBlocks component)
+  const fileBlockRefsRef = useRef<React.RefObject<THREE.InstancedMesh | null>[]>([]);
 
   // Check for last directory on mount
   useEffect(() => {
@@ -227,6 +235,21 @@ function App() {
     }
   }
 
+  // Shoot handler for Tank component
+  function handleShoot(position: THREE.Vector3, direction: THREE.Vector3) {
+    spawn(position, direction);
+  }
+
+  // Projectile hit handler (Task 1: just log for now)
+  function handleProjectileHit(filePath: string) {
+    console.log('Hit file:', filePath);
+  }
+
+  // Callback to receive mesh refs from FileBlocks
+  function handleMeshRefsReady(refs: React.RefObject<THREE.InstancedMesh | null>[]) {
+    fileBlockRefsRef.current = refs;
+  }
+
   if (state === 'checking') {
     return (
       <div className="container">
@@ -371,7 +394,7 @@ function App() {
 
       <KeyboardControls map={CONTROLS_MAP}>
         <Scene>
-          <Tank ref={tankRef} initialPosition={tankStartPosition} tankStateRef={tankStateRef} />
+          <Tank ref={tankRef} initialPosition={tankStartPosition} tankStateRef={tankStateRef} onShoot={handleShoot} />
           <CameraRig tankRef={tankRef} />
 
           <PortalCollision
@@ -382,7 +405,15 @@ function App() {
             onEnterBackPortal={navigateUp}
           />
 
-          <FileBlocks blocks={blocksByCategory} onHover={() => {}} />
+          <ProjectileManager
+            pool={pool}
+            despawn={despawn}
+            onHit={handleProjectileHit}
+            fileBlockRefs={fileBlockRefsRef.current}
+            allBlocks={allBlocks}
+          />
+
+          <FileBlocks blocks={blocksByCategory} onHover={() => {}} onMeshRefsReady={handleMeshRefsReady} />
 
           {folders.map((folder) => {
             const position = folderPositions.get(folder.path);
