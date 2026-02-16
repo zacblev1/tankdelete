@@ -12,7 +12,6 @@ interface FolderPortalProps {
   scale: number;
   childCount: number;
   totalSize: number;
-  onClick: () => void;
   onHover: (data: any | null) => void;
 }
 
@@ -22,7 +21,6 @@ export function FolderPortal({
   scale,
   childCount,
   totalSize,
-  onClick,
   onHover,
 }: FolderPortalProps) {
   const groupRef = useRef<THREE.Group>(null);
@@ -69,11 +67,6 @@ export function FolderPortal({
     onHover(null);
   };
 
-  const handleClick = (e: any) => {
-    e.stopPropagation();
-    onClick();
-  };
-
   const emissiveIntensity = hovered ? 2.0 : 1.0;
 
   return (
@@ -114,10 +107,9 @@ export function FolderPortal({
         </lineSegments>
       </group>
 
-      {/* Invisible clickable box for interaction */}
+      {/* Portal glow box (drive-through only - no click interaction) */}
       <mesh
         position={[0, archHeight / 2, 0]}
-        onClick={handleClick}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >

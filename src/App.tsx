@@ -13,11 +13,14 @@ import { Scene } from './components/Scene/Scene';
 import { FileBlocks } from './components/Scene/FileBlocks';
 import { FolderPortal } from './components/Scene/FolderPortal';
 import { BackPortal } from './components/Scene/BackPortal';
+import { PortalCollision } from './components/Scene/PortalCollision';
 import { Particles } from './components/Scene/Particles';
 import { Tank } from './components/Scene/Tank';
 import { CameraRig } from './components/Scene/CameraRig';
 import { Crosshair } from './components/Scene/Crosshair';
 import { useFileBlocks } from './hooks/useFileBlocks';
+// import { useProjectilePool } from './hooks/useProjectilePool';
+// import { ProjectileManager } from './components/Scene/ProjectileManager';
 import { layoutFilesInGrid } from './lib/layout';
 import { folderToScale } from './lib/scale';
 
@@ -40,9 +43,16 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [deletedCount, setDeletedCount] = useState<number>(0);
   const [deletedBytes, setDeletedBytes] = useState<number>(0);
+  const [tankStartPosition, setTankStartPosition] = useState<[number, number, number]>([0, 0, -12]);
 
   // Tank ref for camera tracking
   const tankRef = useRef<THREE.Group>(null);
+
+  // Projectile pool (commented out - not yet implemented in this plan)
+  // const { spawn, despawn, pool, getActive } = useProjectilePool();
+
+  // File block mesh refs for hit detection (commented out - not yet implemented in this plan)
+  // const fileBlockRefsRef = useRef<React.RefObject<THREE.InstancedMesh>[]>([]);
 
   // Check for last directory on mount
   useEffect(() => {
@@ -161,6 +171,8 @@ function App() {
   async function navigateToDirectory(dirPath: string) {
     setCurrentDirectory(dirPath);
     await commands.saveLastDirectory(dirPath);
+    // Reset tank position to spawn near back portal when entering new directory
+    setTankStartPosition([0, 0, -12]);
     await scanDirectory(dirPath);
   }
 
@@ -287,6 +299,19 @@ function App() {
   const parentPath = currentDirectory ? currentDirectory.replace(/\/[^/]+\/?$/, '') || '/' : '/';
   const isAtRoot = currentDirectory === '/' || !currentDirectory;
 
+  // Prepare portal data for collision detection
+  const folderPortalData = folders.map((folder) => {
+    const position = folderPositions.get(folder.path);
+    const childCount = folderChildCounts.get(folder.path) || 0;
+    return {
+      path: folder.path,
+      position: position || [0, 0, 0] as [number, number, number],
+      scale: folderToScale(childCount, folder.size),
+    };
+  }).filter(p => p.position[0] !== 0 || p.position[1] !== 0 || p.position[2] !== 0);
+
+  const backPortalPosition: [number, number, number] | null = !isAtRoot ? [0, 0.5, -15] : null;
+
   return (
     <div className="scene-container">
       <Toaster
@@ -331,8 +356,16 @@ function App() {
 
       <KeyboardControls map={CONTROLS_MAP}>
         <Scene>
-          <Tank ref={tankRef} />
+          <Tank ref={tankRef} initialPosition={tankStartPosition} />
           <CameraRig tankRef={tankRef} />
+
+          <PortalCollision
+            tankRef={tankRef}
+            folderPortals={folderPortalData}
+            backPortalPosition={backPortalPosition}
+            onEnterFolder={navigateToDirectory}
+            onEnterBackPortal={navigateUp}
+          />
 
           <FileBlocks blocks={blocksByCategory} onHover={() => {}} />
 
@@ -349,14 +382,13 @@ function App() {
                 scale={folderToScale(childCount, folder.size)}
                 childCount={childCount}
                 totalSize={folder.size}
-                onClick={() => navigateToDirectory(folder.path)}
                 onHover={() => {}}
               />
             );
           })}
 
           {!isAtRoot && (
-            <BackPortal parentPath={parentPath} onClick={navigateUp} />
+            <BackPortal parentPath={parentPath} />
           )}
 
           <Particles />

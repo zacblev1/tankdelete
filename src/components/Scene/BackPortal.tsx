@@ -6,10 +6,9 @@ import { BACK_PORTAL_COLOR } from '../../lib/colors';
 
 interface BackPortalProps {
   parentPath: string;
-  onClick: () => void;
 }
 
-export function BackPortal({ parentPath, onClick }: BackPortalProps) {
+export function BackPortal({ parentPath }: BackPortalProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -50,11 +49,6 @@ export function BackPortal({ parentPath, onClick }: BackPortalProps) {
   const handlePointerOut = (e: any) => {
     e.stopPropagation();
     setHovered(false);
-  };
-
-  const handleClick = (e: any) => {
-    e.stopPropagation();
-    onClick();
   };
 
   const emissiveIntensity = hovered ? 2.0 : 1.0;
@@ -100,10 +94,9 @@ export function BackPortal({ parentPath, onClick }: BackPortalProps) {
         </lineSegments>
       </group>
 
-      {/* Invisible clickable box for interaction */}
+      {/* Portal glow box (drive-through only - no click interaction) */}
       <mesh
         position={[0, archHeight / 2, 0]}
-        onClick={handleClick}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >

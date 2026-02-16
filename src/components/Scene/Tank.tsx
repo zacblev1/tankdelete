@@ -1,4 +1,4 @@
-import { useRef, useMemo, forwardRef } from 'react';
+import { useRef, useMemo, forwardRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useKeyboardControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -14,9 +14,10 @@ export enum Controls {
 
 interface TankProps {
   onShoot?: (position: THREE.Vector3, direction: THREE.Vector3) => void;
+  initialPosition?: [number, number, number];
 }
 
-export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot: _onShoot }, tankRef) => {
+export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPosition = [0, 0, 0] }, tankRef) => {
   const turretRef = useRef<THREE.Group>(null);
   const { camera, pointer } = useThree();
 
@@ -25,9 +26,42 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot: _onShoot }, t
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const groundPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
   const intersection = useMemo(() => new THREE.Vector3(), []);
+  const tempWorldPos = useMemo(() => new THREE.Vector3(), []);
+  const tempWorldDir = useMemo(() => new THREE.Vector3(), []);
 
   // Get keyboard controls (use transient reads with get() to avoid re-renders)
   const [, get] = useKeyboardControls<Controls>();
+
+  // Reset tank position when initialPosition changes (directory navigation)
+  useEffect(() => {
+    if (tankRef && 'current' in tankRef && tankRef.current) {
+      tankRef.current.position.set(initialPosition[0], initialPosition[1], initialPosition[2]);
+      tankRef.current.rotation.y = 0; // Face forward
+    }
+  }, [initialPosition, tankRef]);
+
+  // Mouse click handler for shooting
+  useEffect(() => {
+    function handleMouseDown(event: MouseEvent) {
+      // Only fire on left click (button 0)
+      if (event.button !== 0) return;
+      if (!tankRef || !('current' in tankRef) || !tankRef.current || !turretRef.current) return;
+      if (!onShoot) return;
+
+      // Get turret world position and direction
+      turretRef.current.getWorldPosition(tempWorldPos);
+      turretRef.current.getWorldDirection(tempWorldDir);
+
+      // Spawn position: slightly in front of barrel tip (barrel is 1.0 units long, positioned at -0.5z)
+      const spawnPosition = tempWorldPos.clone().addScaledVector(tempWorldDir, 0.8);
+
+      // Fire projectile
+      onShoot(spawnPosition, tempWorldDir.clone());
+    }
+
+    window.addEventListener('mousedown', handleMouseDown);
+    return () => window.removeEventListener('mousedown', handleMouseDown);
+  }, [tankRef, onShoot, tempWorldPos, tempWorldDir]);
 
   useFrame((_state, delta) => {
     if (!tankRef || !('current' in tankRef) || !tankRef.current || !turretRef.current) return;
