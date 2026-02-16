@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Phase: 1 of 4 (Foundation & Safety)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-16 — Roadmap created with 4 phases
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-16 — Completed plan 01-01 (Tauri v2 Scaffold)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 12%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: - min
-- Total execution time: 0.0 hours
+- Total plans completed: 1
+- Average duration: 7 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 | 1 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 7 min
+- Trend: Baseline established
 
 *Updated after each plan completion*
 
@@ -48,6 +48,12 @@ Recent decisions affecting current work:
 - File picker on launch: User picks which directory to explore, no auto-scanning
 - Browser-based: No installation required, accessible
 
+**Plan 01-01 Decisions:**
+- Use Bun as package manager: Faster than npm/yarn, modern tooling
+- Window starts maximized (not fullscreen): Allows menubar access while maximizing viewport
+- Spawn blocking for walkdir traversal: Avoid blocking async runtime with heavy I/O
+- Emit scan progress every 100 files: Balance between UI responsiveness and event overhead
+
 ### Pending Todos
 
 None yet.
@@ -58,6 +64,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-16 (roadmap creation)
-Stopped at: ROADMAP.md and STATE.md written, ready for phase planning
+Last session: 2026-02-16 (plan execution)
+Stopped at: Completed 01-01-PLAN.md — Tauri v2 scaffold with directory picker
 Resume file: None
