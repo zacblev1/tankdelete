@@ -87,10 +87,11 @@ Plans:
   3. Particle explosion plays on file deletion, scaled proportionally to file size
   4. User can view achievement notifications when milestones are earned (e.g., "Freed 1GB")
   5. Achievement system tracks progress across multiple categories (MB freed, files deleted, accuracy)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 04-01-PLAN.md — Score hook, score counter, achievement system, explosion particle system
+- [ ] 04-02-PLAN.md — Wire scoring, achievements, and explosions into App.tsx and HUD
 
 ## Progress
 
@@ -102,4 +103,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation & Safety | 0/2 | Complete    | 2026-02-16 |
 | 2. 3D Visualization | 0/TBD | Not started | - |
 | 3. Core Gameplay | 0/TBD | Not started | - |
-| 4. Game Polish | 0/TBD | Not started | - |
+| 4. Game Polish | 0/2 | Not started | - |
