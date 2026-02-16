@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Phase: 3 of 4 (Core Gameplay)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Active - Plan 03-03 complete
-Last activity: 2026-02-16 — Completed plan 03-03 (Portal Navigation & Minimap)
+Plan: 2 of 3 in current phase (COMPLETE)
+Status: Active - Plan 03-02 complete
+Last activity: 2026-02-16 — Completed plan 03-02 (Shooting and Two-Shot Deletion)
 
-Progress: [██████░░░░] 67%
+Progress: [██████░░░░] 62%
 
 ## Performance Metrics
 
@@ -29,11 +29,11 @@ Progress: [██████░░░░] 67%
 |-------|-------|-------|----------|
 | 01 | 2 | 14 min | 7 min |
 | 02 | 2 | 6 min | 3 min |
-| 03 | 2 | 11 min | 6 min |
+| 03 | 2 | 16 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 5 min avg
-- Trend: Slight increase - plan 03-03 took 8 minutes (collision detection + minimap + build fixes)
+- Last 5 plans: 6 min avg
+- Trend: Steady - maintaining 13-minute execution for complex gameplay features (projectiles + deletion + animation)
 
 *Updated after each plan completion*
 
@@ -81,6 +81,16 @@ Recent decisions affecting current work:
 - KeyboardControls wrapper at App level for context availability
 - Crosshair as HTML overlay for pixel-perfect centering and no depth sorting issues
 
+**Plan 03-02 Decisions:**
+- Projectile pool max size 20 to prevent excessive spawning
+- Glowing cyan (#00ffff) spheres for projectiles with bloom effect
+- Position-based hit detection (within 2 units) for simplicity vs instanceId mapping
+- Red-orange (#ff4400) pulsing glow for marked files with 1.1x scale overlay
+- De-rez duration 0.8 seconds (shrink + sink animation)
+- Delete/X keys for batch delete (in addition to keyboard controls)
+- Separate deletingFiles set to track de-rez animation state
+- onDeletionComplete callback pattern for cleanup after animation
+
 **Plan 03-03 Decisions:**
 - Drive-through navigation replaces click-to-enter: More immersive gameplay, no confirmation prompts
 - 1-second cooldown on portal triggers: Prevents rapid/accidental directory changes
@@ -100,5 +110,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 03-03-PLAN.md (Portal Navigation & Minimap)
+Stopped at: Completed 03-02-PLAN.md (Shooting and Two-Shot Deletion)
 Resume file: None
