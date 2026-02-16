@@ -7,6 +7,14 @@ import { FileEntry, ScanProgress } from './lib/types';
 import { formatBytes } from './lib/format';
 import { DirectoryPicker } from './components/DirectoryPicker';
 import { HUD } from './components/HUD';
+import { Scene } from './components/Scene/Scene';
+import { FileBlocks } from './components/Scene/FileBlocks';
+import { FolderPortal } from './components/Scene/FolderPortal';
+import { BackPortal } from './components/Scene/BackPortal';
+import { Particles } from './components/Scene/Particles';
+import { useFileBlocks } from './hooks/useFileBlocks';
+import { layoutFilesInGrid } from './lib/layout';
+import { folderToScale } from './lib/scale';
 
 type AppState = 'checking' | 'picking' | 'scanning' | 'ready';
 
@@ -148,27 +156,27 @@ function App() {
     }
   }
 
-  async function handleDeleteFile(filePath: string) {
-    try {
-      const action = await commands.moveToTrash(filePath);
+  // async function handleDeleteFile(filePath: string) {
+  //   try {
+  //     const action = await commands.moveToTrash(filePath);
 
-      // Show success toast
-      toast.success(
-        `Deleted ${action.file_name} (${formatBytes(action.original_size)}) -- Ctrl+Z to undo`,
-        { duration: 4000 }
-      );
+  //     // Show success toast
+  //     toast.success(
+  //       `Deleted ${action.file_name} (${formatBytes(action.original_size)}) -- Ctrl+Z to undo`,
+  //       { duration: 4000 }
+  //     );
 
-      // Update session stats
-      const [count, bytes] = await commands.getSessionStats();
-      setDeletedCount(count);
-      setDeletedBytes(bytes);
+  //     // Update session stats
+  //     const [count, bytes] = await commands.getSessionStats();
+  //     setDeletedCount(count);
+  //     setDeletedBytes(bytes);
 
-      // Remove file from list
-      setEntries((prev) => prev.filter((e) => e.path !== filePath));
-    } catch (err) {
-      toast.error(`Failed to delete file: ${err}`);
-    }
-  }
+  //     // Remove file from list
+  //     setEntries((prev) => prev.filter((e) => e.path !== filePath));
+  //   } catch (err) {
+  //     toast.error(`Failed to delete file: ${err}`);
+  //   }
+  // }
 
   async function handleUndoLastTrash() {
     try {
@@ -233,8 +241,38 @@ function App() {
     );
   }
 
+  // Prepare data for 3D scene
+  const { blocksByCategory, folders } = useFileBlocks(entries);
+
+  // Calculate folder positions (folders get front rows in grid layout)
+  const folderPositions = new Map<string, [number, number, number]>();
+  const folderEntries = entries.filter(e => e.is_dir);
+  const allPositions = layoutFilesInGrid(folderEntries);
+
+  for (const folder of folderEntries) {
+    const pos = allPositions.get(folder.path);
+    if (pos) {
+      folderPositions.set(folder.path, [pos.x, pos.y, pos.z]);
+    }
+  }
+
+  // Compute child counts for folders
+  const folderChildCounts = new Map<string, number>();
+  for (const folder of folderEntries) {
+    // Count immediate children visible in current entries list
+    const childCount = entries.filter(e => {
+      const parentPath = e.path.substring(0, e.path.lastIndexOf('/'));
+      return parentPath === folder.path;
+    }).length;
+    folderChildCounts.set(folder.path, childCount || 1);
+  }
+
+  // Parent path for back portal
+  const parentPath = currentDirectory ? currentDirectory.replace(/\/[^/]+\/?$/, '') || '/' : '/';
+  const isAtRoot = currentDirectory === '/' || !currentDirectory;
+
   return (
-    <div className="container">
+    <div className="scene-container">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -273,30 +311,34 @@ function App() {
         </button>
       </div>
 
-      <div className="file-list">
-        {entries.map((entry) => (
-          <div
-            key={entry.path}
-            className={`file-entry ${entry.is_dir ? 'directory' : 'file'}`}
-            onClick={entry.is_dir ? () => navigateToDirectory(entry.path) : undefined}
-            style={entry.is_dir ? { cursor: 'pointer' } : undefined}
-          >
-            <span className="icon">{entry.is_dir ? '📁' : '📄'}</span>
-            <span className="name">{entry.name}</span>
-            <span className="size">{formatBytes(entry.size)}</span>
-            {entry.extension && <span className="extension">.{entry.extension}</span>}
-            {!entry.is_dir && (
-              <button
-                className="delete-btn"
-                onClick={() => handleDeleteFile(entry.path)}
-                title="Delete file"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+      <Scene>
+        <FileBlocks blocks={blocksByCategory} onHover={() => {}} />
+
+        {folders.map((folder) => {
+          const position = folderPositions.get(folder.path);
+          const childCount = folderChildCounts.get(folder.path) || 0;
+          if (!position) return null;
+
+          return (
+            <FolderPortal
+              key={folder.path}
+              folder={folder}
+              position={position}
+              scale={folderToScale(childCount, folder.size)}
+              childCount={childCount}
+              totalSize={folder.size}
+              onClick={() => navigateToDirectory(folder.path)}
+              onHover={() => {}}
+            />
+          );
+        })}
+
+        {!isAtRoot && (
+          <BackPortal parentPath={parentPath} onClick={navigateUp} />
+        )}
+
+        <Particles />
+      </Scene>
     </div>
   );
 }
