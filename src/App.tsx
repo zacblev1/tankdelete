@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import toast, { Toaster } from 'react-hot-toast';
+import { KeyboardControls } from '@react-three/drei';
+import * as THREE from 'three';
 import './App.css';
 import { commands } from './lib/tauri-commands';
 import { FileEntry, ScanProgress } from './lib/types';
@@ -12,11 +14,22 @@ import { FileBlocks } from './components/Scene/FileBlocks';
 import { FolderPortal } from './components/Scene/FolderPortal';
 import { BackPortal } from './components/Scene/BackPortal';
 import { Particles } from './components/Scene/Particles';
+import { Tank } from './components/Scene/Tank';
+import { CameraRig } from './components/Scene/CameraRig';
+import { Crosshair } from './components/Scene/Crosshair';
 import { useFileBlocks } from './hooks/useFileBlocks';
 import { layoutFilesInGrid } from './lib/layout';
 import { folderToScale } from './lib/scale';
 
 type AppState = 'checking' | 'picking' | 'scanning' | 'ready';
+
+// Keyboard controls map
+const CONTROLS_MAP = [
+  { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
+  { name: 'backward', keys: ['KeyS', 'ArrowDown'] },
+  { name: 'left', keys: ['KeyA', 'ArrowLeft'] },
+  { name: 'right', keys: ['KeyD', 'ArrowRight'] },
+];
 
 function App() {
   const [state, setState] = useState<AppState>('checking');
@@ -27,6 +40,9 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [deletedCount, setDeletedCount] = useState<number>(0);
   const [deletedBytes, setDeletedBytes] = useState<number>(0);
+
+  // Tank ref for camera tracking
+  const tankRef = useRef<THREE.Group>(null);
 
   // Check for last directory on mount
   useEffect(() => {
@@ -299,6 +315,8 @@ function App() {
 
       <HUD deletedCount={deletedCount} deletedBytes={deletedBytes} />
 
+      <Crosshair />
+
       <div className="header">
         <div className="header-left">
           <button onClick={navigateUp} className="btn-back" title="Go up one directory">
@@ -311,34 +329,39 @@ function App() {
         </button>
       </div>
 
-      <Scene>
-        <FileBlocks blocks={blocksByCategory} onHover={() => {}} />
+      <KeyboardControls map={CONTROLS_MAP}>
+        <Scene>
+          <Tank ref={tankRef} />
+          <CameraRig tankRef={tankRef} />
 
-        {folders.map((folder) => {
-          const position = folderPositions.get(folder.path);
-          const childCount = folderChildCounts.get(folder.path) || 0;
-          if (!position) return null;
+          <FileBlocks blocks={blocksByCategory} onHover={() => {}} />
 
-          return (
-            <FolderPortal
-              key={folder.path}
-              folder={folder}
-              position={position}
-              scale={folderToScale(childCount, folder.size)}
-              childCount={childCount}
-              totalSize={folder.size}
-              onClick={() => navigateToDirectory(folder.path)}
-              onHover={() => {}}
-            />
-          );
-        })}
+          {folders.map((folder) => {
+            const position = folderPositions.get(folder.path);
+            const childCount = folderChildCounts.get(folder.path) || 0;
+            if (!position) return null;
 
-        {!isAtRoot && (
-          <BackPortal parentPath={parentPath} onClick={navigateUp} />
-        )}
+            return (
+              <FolderPortal
+                key={folder.path}
+                folder={folder}
+                position={position}
+                scale={folderToScale(childCount, folder.size)}
+                childCount={childCount}
+                totalSize={folder.size}
+                onClick={() => navigateToDirectory(folder.path)}
+                onHover={() => {}}
+              />
+            );
+          })}
 
-        <Particles />
-      </Scene>
+          {!isAtRoot && (
+            <BackPortal parentPath={parentPath} onClick={navigateUp} />
+          )}
+
+          <Particles />
+        </Scene>
+      </KeyboardControls>
     </div>
   );
 }
