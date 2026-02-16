@@ -208,28 +208,6 @@ function App() {
     }
   }
 
-  // async function handleDeleteFile(filePath: string) {
-  //   try {
-  //     const action = await commands.moveToTrash(filePath);
-
-  //     // Show success toast
-  //     toast.success(
-  //       `Deleted ${action.file_name} (${formatBytes(action.original_size)}) -- Ctrl+Z to undo`,
-  //       { duration: 4000 }
-  //     );
-
-  //     // Update session stats
-  //     const [count, bytes] = await commands.getSessionStats();
-  //     setDeletedCount(count);
-  //     setDeletedBytes(bytes);
-
-  //     // Remove file from list
-  //     setEntries((prev) => prev.filter((e) => e.path !== filePath));
-  //   } catch (err) {
-  //     toast.error(`Failed to delete file: ${err}`);
-  //   }
-  // }
-
   async function handleUndoLastTrash() {
     try {
       const action = await commands.undoLastTrash();
@@ -406,7 +384,7 @@ function App() {
   const minimapFileBlocks = allBlocks.map(block => ({
     position: block.position,
     color: block.color,
-    isMarked: false, // TODO: Wire up marking system in future plan
+    isMarked: markedFiles.has(block.path),
   }));
 
   const minimapFolderPortals = folderPortalData.map(portal => ({
