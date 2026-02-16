@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Phase: 3 of 4 (Core Gameplay)
-Plan: 1 of 3 in current phase (COMPLETE)
-Status: Active - Plan 03-01 complete
-Last activity: 2026-02-16 — Completed plan 03-01 (Drivable Tank with Camera Controls)
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: Active - Plan 03-03 complete
+Last activity: 2026-02-16 — Completed plan 03-03 (Portal Navigation & Minimap)
 
-Progress: [█████░░░░░] 56%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 5 min
-- Total execution time: 0.6 hours
+- Total plans completed: 6
+- Average duration: 6 min
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [█████░░░░░] 56%
 |-------|-------|-------|----------|
 | 01 | 2 | 14 min | 7 min |
 | 02 | 2 | 6 min | 3 min |
-| 03 | 1 | 3 min | 3 min |
+| 03 | 2 | 11 min | 6 min |
 
 **Recent Trend:**
 - Last 5 plans: 5 min avg
-- Trend: Steady - maintaining efficient 3-minute execution for recent plans
+- Trend: Slight increase - plan 03-03 took 8 minutes (collision detection + minimap + build fixes)
 
 *Updated after each plan completion*
 
@@ -81,6 +81,14 @@ Recent decisions affecting current work:
 - KeyboardControls wrapper at App level for context availability
 - Crosshair as HTML overlay for pixel-perfect centering and no depth sorting issues
 
+**Plan 03-03 Decisions:**
+- Drive-through navigation replaces click-to-enter: More immersive gameplay, no confirmation prompts
+- 1-second cooldown on portal triggers: Prevents rapid/accidental directory changes
+- Tank spawns at [0, 0, -12] near back portal: Consistent spawn location, oriented toward new directory
+- Minimap uses ref-based updates: Avoids re-rendering App on every frame, smooth 60fps
+- 30-unit world radius on minimap: Balances spatial awareness with detail visibility
+- Minimap forward-up rotation: Classic radar pattern, intuitive orientation
+
 ### Pending Todos
 
 None yet.
@@ -92,5 +100,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 03-01-PLAN.md (Drivable Tank with Camera Controls)
+Stopped at: Completed 03-03-PLAN.md (Portal Navigation & Minimap)
 Resume file: None
