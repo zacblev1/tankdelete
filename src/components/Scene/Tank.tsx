@@ -15,9 +15,10 @@ export enum Controls {
 interface TankProps {
   onShoot?: (position: THREE.Vector3, direction: THREE.Vector3) => void;
   initialPosition?: [number, number, number];
+  tankStateRef?: React.RefObject<{ position: [number, number, number]; rotation: number }>;
 }
 
-export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPosition = [0, 0, 0] }, tankRef) => {
+export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPosition = [0, 0, 0], tankStateRef }, tankRef) => {
   const turretRef = useRef<THREE.Group>(null);
   const { camera, pointer } = useThree();
 
@@ -68,6 +69,12 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
 
     const tank = tankRef.current;
     const controls = get();
+
+    // Update tank state ref for minimap (if provided)
+    if (tankStateRef?.current) {
+      tankStateRef.current.position = [tank.position.x, tank.position.y, tank.position.z];
+      tankStateRef.current.rotation = tank.rotation.y;
+    }
 
     // Tank body rotation (A/D keys)
     if (controls.left) {

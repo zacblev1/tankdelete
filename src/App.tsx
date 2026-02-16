@@ -9,6 +9,7 @@ import { FileEntry, ScanProgress } from './lib/types';
 import { formatBytes } from './lib/format';
 import { DirectoryPicker } from './components/DirectoryPicker';
 import { HUD } from './components/HUD';
+import { Minimap } from './components/HUD/Minimap';
 import { Scene } from './components/Scene/Scene';
 import { FileBlocks } from './components/Scene/FileBlocks';
 import { FolderPortal } from './components/Scene/FolderPortal';
@@ -19,8 +20,6 @@ import { Tank } from './components/Scene/Tank';
 import { CameraRig } from './components/Scene/CameraRig';
 import { Crosshair } from './components/Scene/Crosshair';
 import { useFileBlocks } from './hooks/useFileBlocks';
-// import { useProjectilePool } from './hooks/useProjectilePool';
-// import { ProjectileManager } from './components/Scene/ProjectileManager';
 import { layoutFilesInGrid } from './lib/layout';
 import { folderToScale } from './lib/scale';
 
@@ -48,11 +47,8 @@ function App() {
   // Tank ref for camera tracking
   const tankRef = useRef<THREE.Group>(null);
 
-  // Projectile pool (commented out - not yet implemented in this plan)
-  // const { spawn, despawn, pool, getActive } = useProjectilePool();
-
-  // File block mesh refs for hit detection (commented out - not yet implemented in this plan)
-  // const fileBlockRefsRef = useRef<React.RefObject<THREE.InstancedMesh>[]>([]);
+  // Tank state for minimap (updated by Tank component each frame)
+  const tankStateRef = useRef({ position: [0, 0, 0] as [number, number, number], rotation: 0 });
 
   // Check for last directory on mount
   useEffect(() => {
@@ -270,7 +266,7 @@ function App() {
   }
 
   // Prepare data for 3D scene
-  const { blocksByCategory, folders } = useFileBlocks(entries);
+  const { blocksByCategory, folders, allBlocks } = useFileBlocks(entries);
 
   // Calculate folder positions (folders get front rows in grid layout)
   const folderPositions = new Map<string, [number, number, number]>();
@@ -312,6 +308,17 @@ function App() {
 
   const backPortalPosition: [number, number, number] | null = !isAtRoot ? [0, 0.5, -15] : null;
 
+  // Prepare minimap data
+  const minimapFileBlocks = allBlocks.map(block => ({
+    position: block.position,
+    color: block.color,
+    isMarked: false, // TODO: Wire up marking system in future plan
+  }));
+
+  const minimapFolderPortals = folderPortalData.map(portal => ({
+    position: portal.position,
+  }));
+
   return (
     <div className="scene-container">
       <Toaster
@@ -342,6 +349,14 @@ function App() {
 
       <Crosshair />
 
+      <Minimap
+        tankPosition={tankStateRef.current.position}
+        tankRotation={tankStateRef.current.rotation}
+        fileBlocks={minimapFileBlocks}
+        folderPortals={minimapFolderPortals}
+        backPortalPosition={backPortalPosition}
+      />
+
       <div className="header">
         <div className="header-left">
           <button onClick={navigateUp} className="btn-back" title="Go up one directory">
@@ -356,7 +371,7 @@ function App() {
 
       <KeyboardControls map={CONTROLS_MAP}>
         <Scene>
-          <Tank ref={tankRef} initialPosition={tankStartPosition} />
+          <Tank ref={tankRef} initialPosition={tankStartPosition} tankStateRef={tankStateRef} />
           <CameraRig tankRef={tankRef} />
 
           <PortalCollision

@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect, useState } from 'react';
+import { useRef, useMemo, useEffect, useState, createRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -12,10 +12,12 @@ interface InstancedCategoryBlocksProps {
   blocks: BlockData[];
   category: FileCategory;
   onHover: (block: BlockData | null) => void;
+  meshRef?: React.RefObject<THREE.InstancedMesh | null>;
 }
 
-function InstancedCategoryBlocks({ blocks, category, onHover }: InstancedCategoryBlocksProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+function InstancedCategoryBlocks({ blocks, category, onHover, meshRef: externalMeshRef }: InstancedCategoryBlocksProps) {
+  const internalMeshRef = useRef<THREE.InstancedMesh | null>(null);
+  const meshRef = externalMeshRef || internalMeshRef;
   const groupRef = useRef<THREE.Group>(null);
   const shapeConfig = CATEGORY_SHAPES[category];
   const categoryColor = blocks[0]?.color || '#ffffff';
@@ -167,10 +169,22 @@ function InstancedCategoryBlocks({ blocks, category, onHover }: InstancedCategor
 interface FileBlocksProps {
   blocks: Map<FileCategory, BlockData[]>;
   onHover: (block: BlockData | null) => void;
+  onMeshRefsReady?: (refs: React.RefObject<THREE.InstancedMesh | null>[]) => void;
 }
 
-export function FileBlocks({ blocks, onHover }: FileBlocksProps) {
+export function FileBlocks({ blocks, onHover, onMeshRefsReady }: FileBlocksProps) {
   const [hoveredBlock, setHoveredBlock] = useState<BlockData | null>(null);
+
+  // Collect mesh refs for hit detection
+  const meshRefs = useRef<Map<FileCategory, React.RefObject<THREE.InstancedMesh | null>>>(new Map());
+
+  // Report mesh refs when they're ready
+  useEffect(() => {
+    if (onMeshRefsReady && meshRefs.current.size > 0) {
+      const refs = Array.from(meshRefs.current.values());
+      onMeshRefsReady(refs);
+    }
+  }, [onMeshRefsReady, blocks]);
 
   const handleHover = (block: BlockData | null) => {
     setHoveredBlock(block);
@@ -180,14 +194,23 @@ export function FileBlocks({ blocks, onHover }: FileBlocksProps) {
   return (
     <>
       {/* Render instanced blocks per category */}
-      {Array.from(blocks.entries()).map(([category, categoryBlocks]) => (
-        <InstancedCategoryBlocks
-          key={category}
-          blocks={categoryBlocks}
-          category={category}
-          onHover={handleHover}
-        />
-      ))}
+      {Array.from(blocks.entries()).map(([category, categoryBlocks]) => {
+        // Create or get ref for this category
+        if (!meshRefs.current.has(category)) {
+          meshRefs.current.set(category, createRef<THREE.InstancedMesh>());
+        }
+        const categoryMeshRef = meshRefs.current.get(category)!;
+
+        return (
+          <InstancedCategoryBlocks
+            key={category}
+            blocks={categoryBlocks}
+            category={category}
+            onHover={handleHover}
+            meshRef={categoryMeshRef}
+          />
+        );
+      })}
 
       {/* Hover tooltip */}
       {hoveredBlock && (
