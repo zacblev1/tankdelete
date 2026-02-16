@@ -28,10 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. User can select a starting directory which the app can read
   3. Files moved to recycle bin can be restored (trash integration works)
   4. User can undo the last deletion with Ctrl+Z
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 01-01-PLAN.md — Tauri scaffold + directory picker + filesystem scanning
+- [ ] 01-02-PLAN.md — Trash system + undo stack + HUD overlay
 
 ### Phase 2: 3D Visualization
 **Goal**: Users can see their files and folders as 3D objects in a Tron-themed neon grid environment
@@ -94,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Safety | 0/TBD | Not started | - |
+| 1. Foundation & Safety | 0/2 | Planning complete | - |
 | 2. 3D Visualization | 0/TBD | Not started | - |
 | 3. Core Gameplay | 0/TBD | Not started | - |
 | 4. Game Polish | 0/TBD | Not started | - |
