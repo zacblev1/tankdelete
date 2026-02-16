@@ -69,10 +69,12 @@ Plans:
   9. Deleted file block plays destruction animation and disappears
   10. User can mark multiple files, then delete all marked files at once (batch mode)
   11. Third-person camera follows behind and above the tank smoothly during movement
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD
+- [ ] 03-01-PLAN.md — Tank with WASD controls, mouse turret aim, third-person camera, crosshair
+- [ ] 03-02-PLAN.md — Projectile shooting, two-shot deletion (mark + delete), de-rez animation, batch delete
+- [ ] 03-03-PLAN.md — Drive-through portal navigation, radar minimap HUD
 
 ### Phase 4: Game Polish
 **Goal**: Users experience satisfying visual/audio feedback and gamification that makes deletion feel fun
