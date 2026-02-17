@@ -1,0 +1,56 @@
+.achievement-toast {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+
+  background: rgba(5, 5, 16, 0.95);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+
+  box-shadow:
+    0 0 15px rgba(0, 255, 255, 0.6),
+    0 0 30px rgba(0, 255, 255, 0.4),
+    0 0 45px rgba(0, 255, 255, 0.2);
+
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.6));
+}
+
+.achievement-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.achievement-label {
+  font-size: 10px;
+  color: #00ffff;
+  letter-spacing: 2px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 5px rgba(0, 255, 255, 0.8),
+    0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.achievement-name {
+  font-size: 18px;
+  color: white;
+  font-weight: bold;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.6),
+    0 0 16px rgba(0, 255, 255, 0.4);
+}
