@@ -25,6 +25,10 @@ import { useMarkedFiles } from './hooks/useMarkedFiles';
 import { ProjectileManager } from './components/Scene/ProjectileManager';
 import { layoutFilesInGrid } from './lib/layout';
 import { folderToScale } from './lib/scale';
+import { useScore } from './hooks/useScore';
+import { useAchievements } from './hooks/useAchievements';
+import { useExplosionPool } from './hooks/useExplosionPool';
+import { ExplosionParticles } from './components/Scene/ExplosionParticles';
 
 type AppState = 'checking' | 'picking' | 'scanning' | 'ready';
 
@@ -68,6 +72,11 @@ function App() {
     deleteAllMarked,
     markedCount,
   } = useMarkedFiles();
+
+  // Game polish hooks
+  const { score, totalBytesFreed, addPoints } = useScore();
+  useAchievements(totalBytesFreed);
+  const { explosions, spawn: spawnExplosion, despawn: despawnExplosion } = useExplosionPool();
 
   // File block mesh refs for hit detection (populated by FileBlocks component)
   const fileBlockRefsRef = useRef<React.RefObject<THREE.InstancedMesh | null>[]>([]);
@@ -245,9 +254,22 @@ function App() {
       try {
         const action = await commands.moveToTrash(filePath);
 
-        // Show success toast
+        // Add score points for the deletion
+        const points = addPoints(action.original_size);
+
+        // Spawn explosion at file location
+        const block = allBlocks.find(b => b.path === filePath);
+        if (block) {
+          spawnExplosion(
+            new THREE.Vector3(block.position[0], block.position[1], block.position[2]),
+            block.color,
+            block.scale
+          );
+        }
+
+        // Show success toast with points
         toast.success(
-          `Deleted ${action.file_name} (${formatBytes(action.original_size)})`,
+          `Deleted ${action.file_name} (+${points} pts)`,
           { duration: 3000 }
         );
 
@@ -279,12 +301,37 @@ function App() {
     if (markedCount === 0) return;
 
     try {
+      // Capture current session bytes for point calculation
+      const [, prevBytes] = await commands.getSessionStats();
+
+      // Capture marked files and their block data before deletion
+      const filesToDelete = Array.from(markedFiles);
+      const fileBlocks = filesToDelete.map(filePath =>
+        allBlocks.find(b => b.path === filePath)
+      ).filter(block => block !== undefined);
+
+      // Delete all marked files
       await deleteAllMarked();
+
+      // Stagger explosions for chain reaction feel (80ms apart)
+      fileBlocks.forEach((block, index) => {
+        setTimeout(() => {
+          spawnExplosion(
+            new THREE.Vector3(block.position[0], block.position[1], block.position[2]),
+            block.color,
+            block.scale
+          );
+        }, index * 80);
+      });
 
       // Update session stats after batch delete
       const [count, bytes] = await commands.getSessionStats();
       setDeletedCount(count);
       setDeletedBytes(bytes);
+
+      // Add points based on bytes freed in this batch
+      const bytesFreed = bytes - prevBytes;
+      addPoints(bytesFreed);
 
       toast.success(`Deleted ${markedCount} marked files`, { duration: 3000 });
     } catch (err) {
@@ -417,7 +464,7 @@ function App() {
         }}
       />
 
-      <HUD deletedCount={deletedCount} deletedBytes={deletedBytes} />
+      <HUD deletedCount={deletedCount} deletedBytes={deletedBytes} score={score} />
 
       <Crosshair />
 
@@ -461,6 +508,8 @@ function App() {
             fileBlockRefs={fileBlockRefsRef.current}
             allBlocks={allBlocks}
           />
+
+          <ExplosionParticles explosions={explosions} onExplosionComplete={despawnExplosion} />
 
           <FileBlocks
             blocks={blocksByCategory}
