@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { Grid } from './Grid';
+import { TronGrid } from './TronGrid';
 import { Lighting } from './Lighting';
 import { PostProcessing } from './PostProcessing';
 
@@ -17,7 +17,7 @@ export function Scene({ children }: SceneProps) {
         <color attach="background" args={['#050510']} />
         <fog attach="fog" args={['#050510', 50, 150]} />
         <Lighting />
-        <Grid />
+        <TronGrid />
         {children}
         <PostProcessing />
       </Canvas>

@@ -89,7 +89,7 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
       tank.rotation.y -= TANK_ROTATION_SPEED * delta;
     }
 
-    // Tank body movement (W/S keys) - instant movement, no acceleration
+    // Tank body movement (W/S keys)
     const moveAmount = TANK_SPEED * delta;
     if (controls.forward || controls.backward) {
       // Get forward direction based on tank body rotation

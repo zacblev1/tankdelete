@@ -1,22 +1,19 @@
 import { useRef, useEffect } from 'react';
 
 interface MinimapProps {
-  tankPosition: [number, number, number];
-  tankRotation: number; // Y rotation in radians
+  tankStateRef: React.RefObject<{ position: [number, number, number]; rotation: number }>;
   fileBlocks: Array<{ position: [number, number, number]; color: string; isMarked?: boolean }>;
   folderPortals: Array<{ position: [number, number, number] }>;
   backPortalPosition: [number, number, number] | null;
 }
 
 export function Minimap({
-  tankPosition,
-  tankRotation,
+  tankStateRef,
   fileBlocks,
   folderPortals,
   backPortalPosition,
 }: MinimapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const lastDrawnPosition = useRef({ x: 0, y: 0, z: 0, rotation: 0 });
   const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -31,29 +28,12 @@ export function Minimap({
     const WORLD_RADIUS = 30; // units in 3D world space
     const SCALE = RADAR_RADIUS / WORLD_RADIUS;
 
-    // Function to check if position changed enough to warrant redraw
-    function hasPositionChanged(): boolean {
-      const threshold = 0.1; // Small threshold to avoid excessive redraws
-      const rotationThreshold = 0.05;
-
-      return (
-        Math.abs(tankPosition[0] - lastDrawnPosition.current.x) > threshold ||
-        Math.abs(tankPosition[2] - lastDrawnPosition.current.z) > threshold ||
-        Math.abs(tankRotation - lastDrawnPosition.current.rotation) > rotationThreshold
-      );
-    }
-
     // Draw the minimap
     function draw() {
-      if (!ctx || !canvas) return;
+      if (!ctx || !canvas || !tankStateRef.current) return;
 
-      // Update last drawn position
-      lastDrawnPosition.current = {
-        x: tankPosition[0],
-        y: tankPosition[1],
-        z: tankPosition[2],
-        rotation: tankRotation,
-      };
+      const tankPosition = tankStateRef.current.position;
+      const tankRotation = tankStateRef.current.rotation;
 
       const centerX = CANVAS_SIZE / 2;
       const centerY = CANVAS_SIZE / 2;
@@ -165,11 +145,9 @@ export function Minimap({
       ctx.stroke();
     }
 
-    // Animation loop for smooth sweep line
+    // Animation loop — reads fresh ref values each frame
     function animate() {
-      if (hasPositionChanged()) {
-        draw();
-      }
+      draw();
       animationFrameRef.current = requestAnimationFrame(animate);
     }
 
@@ -182,7 +160,7 @@ export function Minimap({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [tankPosition, tankRotation, fileBlocks, folderPortals, backPortalPosition]);
+  }, [tankStateRef, fileBlocks, folderPortals, backPortalPosition]);
 
   return (
     <canvas

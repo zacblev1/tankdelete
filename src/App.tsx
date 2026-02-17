@@ -469,8 +469,7 @@ function App() {
       <Crosshair />
 
       <Minimap
-        tankPosition={tankStateRef.current.position}
-        tankRotation={tankStateRef.current.rotation}
+        tankStateRef={tankStateRef}
         fileBlocks={minimapFileBlocks}
         folderPortals={minimapFolderPortals}
         backPortalPosition={backPortalPosition}

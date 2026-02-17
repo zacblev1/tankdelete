@@ -1,6 +1,29 @@
+import { useEffect, useRef } from 'react';
+
 export function Crosshair() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Hide OS cursor globally while game is active
+    document.body.style.cursor = 'none';
+
+    function handleMouseMove(e: MouseEvent) {
+      if (ref.current) {
+        ref.current.style.left = `${e.clientX}px`;
+        ref.current.style.top = `${e.clientY}px`;
+      }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      document.body.style.cursor = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   return (
     <div
+      ref={ref}
       style={{
         position: 'fixed',
         top: '50%',
