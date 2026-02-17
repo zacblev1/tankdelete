@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Deleting unwanted files feels fun and satisfying, not tedious — turning filesystem cleanup into a game.
-**Current focus:** Phase 3: Core Gameplay
+**Current focus:** Phase 4: Game Polish
 
 ## Current Position
 
-Phase: 3 of 4 (Core Gameplay)
-Plan: 4 of 4 in current phase (COMPLETE)
-Status: Active - Plan 03-04 complete
-Last activity: 2026-02-16 — Completed plan 03-04 (Wire Minimap and Remove Dead Code)
+Phase: 4 of 4 (Game Polish)
+Plan: 1 of 2 in current phase (COMPLETE)
+Status: Active - Plan 04-01 complete
+Last activity: 2026-02-16 — Completed plan 04-01 (Game Polish Artifacts)
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 4 min
-- Total execution time: 0.9 hours
+- Total plans completed: 8
+- Average duration: 3 min
+- Total execution time: 1.0 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [███████░░░] 70%
 | 01 | 2 | 14 min | 7 min |
 | 02 | 2 | 6 min | 3 min |
 | 03 | 3 | 16 min | 5 min |
+| 04 | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 5 min avg
-- Trend: Accelerating - gap closure plan executed in <1 min (surgical fixes only)
+- Last 5 plans: 3 min avg
+- Trend: Accelerating - standalone artifact creation highly efficient
 
 *Updated after each plan completion*
 
@@ -102,6 +103,17 @@ Recent decisions affecting current work:
 **Plan 03-04 Decisions:**
 - None - gap closure plan executed exactly as specified (surgical fixes only)
 
+**Plan 04-01 Decisions:**
+- Session-scoped scoring: Score never resets during gameplay, tracks lifetime progress
+- ScoreCounter animation: 2ms per point (max 1 second) with ease-out cubic for smooth transitions
+- Three Tron-themed achievements: Derezzer (100MB), Grid Cleaner (1GB), System Purge (10GB)
+- Staggered toast queueing: 2-second spacing prevents simultaneous achievement overlaps
+- Scale-based particle spawning: 20 particles (tiny files) to 500 particles (huge files)
+- Max 2000 particle budget: Enforced across all simultaneous explosions for performance
+- Half-gravity particle physics: 4.9 m/s² (instead of 9.8) for floaty digital feel
+- 1-1.5 second particle lifetime: Randomized for organic dissolve effect
+- Explosion completion detection: 2.5 second timeout + no active particles check
+
 ### Pending Todos
 
 None yet.
@@ -113,5 +125,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 03-04-PLAN.md (Wire Minimap and Remove Dead Code)
+Stopped at: Completed 04-01-PLAN.md (Game Polish Artifacts)
 Resume file: None
