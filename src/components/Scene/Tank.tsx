@@ -53,7 +53,10 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
       turretRef.current.getWorldPosition(tempWorldPos);
       turretRef.current.getWorldDirection(tempWorldDir);
 
-      // getWorldDirection returns -Z axis direction, which is where the barrel points
+      // getWorldDirection returns -Z axis direction, but tank body is rotated PI
+      // so we negate to get the actual barrel-forward direction in world space
+      tempWorldDir.negate();
+
       // Spawn position: slightly in front of barrel tip
       const spawnPosition = tempWorldPos.clone().addScaledVector(tempWorldDir, 0.8);
 
