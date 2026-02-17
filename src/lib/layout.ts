@@ -9,8 +9,8 @@ export type BlockPosition = {
 
 export function layoutFilesInGrid(
   files: FileEntry[],
-  spacing: number = 3.0,
-  itemsPerRow: number = 12
+  spacing: number = 5.0,
+  itemsPerRow: number = 8
 ): Map<string, BlockPosition> {
   const positions = new Map<string, BlockPosition>();
 

@@ -37,7 +37,7 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
   useEffect(() => {
     if (tankRef && 'current' in tankRef && tankRef.current) {
       tankRef.current.position.set(initialPosition[0], initialPosition[1], initialPosition[2]);
-      tankRef.current.rotation.y = 0; // Face forward
+      tankRef.current.rotation.y = Math.PI; // Face toward files (+Z direction)
     }
   }, [initialPosition, tankRef]);
 
@@ -110,7 +110,7 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
       const localTarget = tank.worldToLocal(intersection.clone());
 
       // Make turret look at the local target (only Y-axis rotation)
-      const angle = Math.atan2(localTarget.x, -localTarget.z);
+      const angle = Math.atan2(localTarget.x, localTarget.z);
       turretRef.current.rotation.y = angle;
     }
   });

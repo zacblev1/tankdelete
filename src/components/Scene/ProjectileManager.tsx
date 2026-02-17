@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Projectile } from '../../hooks/useProjectilePool';
 import { PROJECTILE_SPEED, PROJECTILE_MAX_LIFETIME } from '../../lib/constants';
 import { BlockData } from '../../hooks/useFileBlocks';
+
+const MAX_PROJECTILES = 20;
 
 interface ProjectileManagerProps {
   pool: React.RefObject<Projectile[]>;
@@ -20,15 +22,19 @@ export function ProjectileManager({
   fileBlockRefs,
   allBlocks,
 }: ProjectileManagerProps) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+
   // Pre-allocate raycaster and temp vectors
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const tempPosition = useMemo(() => new THREE.Vector3(), []);
-
-  // Shared geometry for all projectile spheres
-  const sphereGeometry = useMemo(() => new THREE.SphereGeometry(0.12, 8, 8), []);
+  const tempMatrix = useMemo(() => new THREE.Matrix4(), []);
+  const tempQuaternion = useMemo(() => new THREE.Quaternion(), []);
+  const tempScale = useMemo(() => new THREE.Vector3(1, 1, 1), []);
 
   useFrame((_state, delta) => {
-    if (!pool.current) return;
+    if (!pool.current || !meshRef.current) return;
+
+    let visibleCount = 0;
 
     for (let i = 0; i < pool.current.length; i++) {
       const projectile = pool.current[i];
@@ -57,8 +63,6 @@ export function ProjectileManager({
       if (intersections.length > 0) {
         const hit = intersections[0];
 
-        // Find the corresponding block by position proximity
-        // This works because instanced meshes report hit.point in world coordinates
         let hitBlock: BlockData | null = null;
         let minDist = Infinity;
 
@@ -73,28 +77,27 @@ export function ProjectileManager({
         if (hitBlock) {
           onHit(hitBlock.path);
           despawn(i);
+          continue;
         }
       }
+
+      // Update instance matrix for visible projectile
+      tempScale.set(1, 1, 1);
+      tempMatrix.compose(projectile.position, tempQuaternion, tempScale);
+      meshRef.current.setMatrixAt(visibleCount, tempMatrix);
+      visibleCount++;
+    }
+
+    meshRef.current.count = visibleCount;
+    if (visibleCount > 0) {
+      meshRef.current.instanceMatrix.needsUpdate = true;
     }
   });
 
-  // Render active projectiles
   return (
-    <group>
-      {pool.current?.map((projectile, index) => {
-        if (!projectile.active) return null;
-
-        return (
-          <mesh
-            key={index}
-            position={projectile.position}
-            geometry={sphereGeometry}
-            dispose={null}
-          >
-            <meshBasicMaterial color="#00ffff" toneMapped={false} />
-          </mesh>
-        );
-      })}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, MAX_PROJECTILES]}>
+      <sphereGeometry args={[0.12, 8, 8]} />
+      <meshBasicMaterial color="#00ffff" toneMapped={false} />
+    </instancedMesh>
   );
 }
