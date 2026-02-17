@@ -215,6 +215,7 @@ function InstancedCategoryBlocks({ blocks, category, onHover, meshRef: externalM
         <Text
           key={block.path}
           position={[block.position[0], block.position[1] + block.scale + 0.5, block.position[2]]}
+          rotation={[0, Math.PI, 0]}
           fontSize={0.2}
           color={block.color}
           anchorX="center"

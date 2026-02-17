@@ -110,7 +110,7 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
       const localTarget = tank.worldToLocal(intersection.clone());
 
       // Make turret look at the local target (only Y-axis rotation)
-      const angle = Math.atan2(localTarget.x, localTarget.z);
+      const angle = Math.atan2(localTarget.x, -localTarget.z);
       turretRef.current.rotation.y = angle;
     }
   });
