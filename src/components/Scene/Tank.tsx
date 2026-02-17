@@ -43,7 +43,7 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
 
   // Mouse click handler for shooting
   useEffect(() => {
-    function handleMouseDown(event: MouseEvent) {
+    function handlePointerDown(event: PointerEvent) {
       // Only fire on left click (button 0)
       if (event.button !== 0) return;
       if (!tankRef || !('current' in tankRef) || !tankRef.current || !turretRef.current) return;
@@ -53,15 +53,17 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
       turretRef.current.getWorldPosition(tempWorldPos);
       turretRef.current.getWorldDirection(tempWorldDir);
 
-      // Spawn position: slightly in front of barrel tip (barrel is 1.0 units long, positioned at -0.5z)
+      // getWorldDirection returns -Z axis direction, which is where the barrel points
+      // Spawn position: slightly in front of barrel tip
       const spawnPosition = tempWorldPos.clone().addScaledVector(tempWorldDir, 0.8);
 
-      // Fire projectile
+      // Fire projectile in barrel direction
       onShoot(spawnPosition, tempWorldDir.clone());
     }
 
-    window.addEventListener('mousedown', handleMouseDown);
-    return () => window.removeEventListener('mousedown', handleMouseDown);
+    // Use capture phase to ensure we receive the event before R3F Canvas
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
   }, [tankRef, onShoot, tempWorldPos, tempWorldDir]);
 
   useFrame((_state, delta) => {
@@ -110,7 +112,9 @@ export const Tank = forwardRef<THREE.Group, TankProps>(({ onShoot, initialPositi
       const localTarget = tank.worldToLocal(intersection.clone());
 
       // Make turret look at the local target (only Y-axis rotation)
-      const angle = Math.atan2(localTarget.x, -localTarget.z);
+      // Barrel points along turret's local -Z axis
+      // To aim -Z toward (x, z): angle = atan2(-x, -z)
+      const angle = Math.atan2(-localTarget.x, -localTarget.z);
       turretRef.current.rotation.y = angle;
     }
   });
