@@ -6,12 +6,12 @@ import { PROJECTILE_SPEED, PROJECTILE_MAX_LIFETIME } from '../../lib/constants';
 import { BlockData } from '../../hooks/useFileBlocks';
 
 const MAX_PROJECTILES = 20;
+const HIT_RADIUS = 1.5; // Distance threshold for projectile-block collision
 
 interface ProjectileManagerProps {
   pool: React.RefObject<Projectile[]>;
   despawn: (index: number) => void;
   onHit: (filePath: string) => void;
-  fileBlockRefs: React.RefObject<THREE.InstancedMesh | null>[];
   allBlocks: BlockData[];
 }
 
@@ -19,13 +19,11 @@ export function ProjectileManager({
   pool,
   despawn,
   onHit,
-  fileBlockRefs,
   allBlocks,
 }: ProjectileManagerProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  // Pre-allocate raycaster and temp vectors
-  const raycaster = useMemo(() => new THREE.Raycaster(), []);
+  // Pre-allocate temp vectors
   const tempPosition = useMemo(() => new THREE.Vector3(), []);
   const tempMatrix = useMemo(() => new THREE.Matrix4(), []);
   const tempQuaternion = useMemo(() => new THREE.Quaternion(), []);
@@ -50,35 +48,22 @@ export function ProjectileManager({
         continue;
       }
 
-      // Hit detection via raycasting
-      raycaster.set(projectile.position, projectile.direction);
+      // Proximity-based hit detection — find nearest block within hit radius
+      let hitBlock: BlockData | null = null;
+      let minDist = Infinity;
 
-      // Check intersections against all instanced meshes
-      const validMeshes = fileBlockRefs
-        .map(ref => ref.current)
-        .filter((mesh): mesh is THREE.InstancedMesh => mesh !== null);
-
-      const intersections = raycaster.intersectObjects(validMeshes, false);
-
-      if (intersections.length > 0) {
-        const hit = intersections[0];
-
-        let hitBlock: BlockData | null = null;
-        let minDist = Infinity;
-
-        for (const block of allBlocks) {
-          const dist = tempPosition.set(...block.position).distanceTo(hit.point);
-          if (dist < minDist && dist < 2.0) {
-            minDist = dist;
-            hitBlock = block;
-          }
+      for (const block of allBlocks) {
+        const dist = tempPosition.set(...block.position).distanceTo(projectile.position);
+        if (dist < minDist && dist < HIT_RADIUS) {
+          minDist = dist;
+          hitBlock = block;
         }
+      }
 
-        if (hitBlock) {
-          onHit(hitBlock.path);
-          despawn(i);
-          continue;
-        }
+      if (hitBlock) {
+        onHit(hitBlock.path);
+        despawn(i);
+        continue;
       }
 
       // Update instance matrix for visible projectile

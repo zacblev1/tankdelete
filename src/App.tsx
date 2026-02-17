@@ -346,45 +346,7 @@ function App() {
     setEntries(prev => prev.filter(e => e.path !== filePath));
   }
 
-  if (state === 'checking') {
-    return (
-      <div className="container">
-        <div className="loading">Checking for last directory...</div>
-      </div>
-    );
-  }
-
-  if (state === 'picking') {
-    return (
-      <div className="container">
-        <DirectoryPicker
-          onPick={pickDirectory}
-          lastDirectory={lastDirectory}
-          onReopenLast={lastDirectory ? reopenLastDirectory : undefined}
-          error={error}
-        />
-      </div>
-    );
-  }
-
-  if (state === 'scanning') {
-    return (
-      <div className="container">
-        <div className="loading">
-          <h2>Scanning directory...</h2>
-          {error && <div className="error-message">{error}</div>}
-          {scanProgress && (
-            <div className="scan-progress">
-              <p>Files scanned: {scanProgress.files_scanned}</p>
-              <p>Total size: {formatBytes(scanProgress.total_bytes)}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Prepare data for 3D scene
+  // Prepare data for 3D scene (needs to be before early returns so handlers can reference allBlocks)
   const { blocksByCategory, folders, allBlocks } = useFileBlocks(entries);
 
   // Calculate folder positions (folders get front rows in grid layout)
@@ -437,6 +399,44 @@ function App() {
   const minimapFolderPortals = folderPortalData.map(portal => ({
     position: portal.position,
   }));
+
+  if (state === 'checking') {
+    return (
+      <div className="container">
+        <div className="loading">Checking for last directory...</div>
+      </div>
+    );
+  }
+
+  if (state === 'picking') {
+    return (
+      <div className="container">
+        <DirectoryPicker
+          onPick={pickDirectory}
+          lastDirectory={lastDirectory}
+          onReopenLast={lastDirectory ? reopenLastDirectory : undefined}
+          error={error}
+        />
+      </div>
+    );
+  }
+
+  if (state === 'scanning') {
+    return (
+      <div className="container">
+        <div className="loading">
+          <h2>Scanning directory...</h2>
+          {error && <div className="error-message">{error}</div>}
+          {scanProgress && (
+            <div className="scan-progress">
+              <p>Files scanned: {scanProgress.files_scanned}</p>
+              <p>Total size: {formatBytes(scanProgress.total_bytes)}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="scene-container">
@@ -505,11 +505,12 @@ function App() {
             pool={pool}
             despawn={despawn}
             onHit={handleProjectileHit}
-            fileBlockRefs={fileBlockRefsRef.current}
             allBlocks={allBlocks}
           />
 
-          <ExplosionParticles explosions={explosions} onExplosionComplete={despawnExplosion} />
+          {explosions.length > 0 && (
+            <ExplosionParticles explosions={explosions} onExplosionComplete={despawnExplosion} />
+          )}
 
           <FileBlocks
             blocks={blocksByCategory}
