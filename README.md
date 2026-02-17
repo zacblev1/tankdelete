@@ -1,6 +1,6 @@
 # TankDelete
 
-Disclosure: This game was entirely created by Claude. 
+Disclosure / Caution: This game was entirely created by Claude. This game is intended to be an entertaining way to delete files on your system. With that being said you are deleting files on your system so use with caution.
 
 Drive a tank through your filesystem. Shoot files to delete them.
 
