@@ -6,6 +6,10 @@ Drive a tank through your filesystem. Shoot files to delete them.
 
 A Tron-inspired desktop app where your directories become neon arenas. Navigate glowing road grids, drive through tunnel portals to enter folders, and blast files into voxel explosions to free up disk space.
 
+![Arena view — files as glowing blocks on the Tron road grid](screenshots/arena.png)
+
+![Tunnel portals — drive through to navigate folders](screenshots/tunnels.png)
+
 ## Controls
 
 | Input | Action |
