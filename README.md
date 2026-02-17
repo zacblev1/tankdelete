@@ -1,5 +1,7 @@
 # TankDelete
 
+Disclosure: This game was entirely created by Claude. 
+
 Drive a tank through your filesystem. Shoot files to delete them.
 
 A Tron-inspired desktop app where your directories become neon arenas. Navigate glowing road grids, drive through tunnel portals to enter folders, and blast files into voxel explosions to free up disk space.
